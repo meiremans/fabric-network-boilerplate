@@ -64,9 +64,9 @@ let Chaincode = class {
         console.info('============= START : Initialize Ledger ===========');
         let entries = [];
 
-        entries.push(new Entry('First DATA!','Inserted on Initialization'));
-        entries.push(new Entry('Second DATA!','Inserted on Initialization'));
-        entries.push(new Entry('Third DATA!','Inserted on Initialization'));
+        entries.push(new Entry('First DATA!','Inserted first on Initialization'));
+        entries.push(new Entry('Second DATA!','Inserted second on Initialization'));
+        entries.push(new Entry('Third DATA!','Inserted third on Initialization'));
 
         for (let i = 0; i < entries.length; i++) {
             await stub.putState(Entry.generateKeyByNumber(i), Buffer.from(JSON.stringify(entries[i].propsToValue())));
