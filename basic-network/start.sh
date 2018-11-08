@@ -14,7 +14,7 @@ docker-compose -f docker-compose.yml down
 
 #remove old images
 echo "REMOVE ALL OLD IMAGES"
-docker images | grep "dev-" | awk '{print $3}' | xargs docker rmi -f
+docker images --no-trunc --all --quiet --filter="dangling=true" | grep "dev-" | awk '{print $3}' | xargs --no-run-if-empty docker rmi -f
 
 docker-compose -f docker-compose.yml up -d ca.example.com orderer.example.com peer0.org1.example.com couchdb
 

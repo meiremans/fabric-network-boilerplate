@@ -7,8 +7,9 @@
 # Exit on first error
 set -e
 
-CHAINCODE_NAME=fabcar
+CHAINCODE_NAME=samplechaincode
 CHAINCODE_VERSION=1.0
+SLEEPTIME=10
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
@@ -19,11 +20,9 @@ LANGUAGE=${1:-"node"}
 CC_SRC_PATH=github.com/fabcar/go
 if [ "$LANGUAGE" = "node" -o "$LANGUAGE" = "NODE" ]; then
     cd $DIR
-    cd ../chaincode/node
-    yarn
-    yarn run clean
-    yarn run build
-	CC_SRC_PATH=/opt/gopath/src/github.com/fabcar/node
+    cd ../chaincode/node/sampleContract/
+    npm install
+	CC_SRC_PATH=/opt/gopath/src/github.com/chaincode/node/sampleContract
 fi
 
 # clean the keystore
@@ -40,7 +39,7 @@ cd ../basic-network
 docker-compose -f ./docker-compose.yml up -d cli
 
 docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp" cli peer chaincode install -n "$CHAINCODE_NAME" -v "$CHAINCODE_VERSION" -p "$CC_SRC_PATH" -l "$LANGUAGE"
-docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp" cli peer chaincode instantiate -o orderer.example.com:7050 -C mychannel -n "$CHAINCODE_NAME" -l "$LANGUAGE" -v "$CHAINCODE_VERSION" -c '{"function":"init","Args":["'$CHAINCODE_VERSION'"]}' -P "OR ('Org1MSP.member','Org2MSP.member')" --collections-config $CC_SRC_PATH/collections_config.json
+docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp" cli peer chaincode instantiate -o orderer.example.com:7050 -C mychannel -n "$CHAINCODE_NAME" -l "$LANGUAGE" -v "$CHAINCODE_VERSION" -c '{"function":"init","Args":["'$CHAINCODE_VERSION'"]}' -P "OR ('Org1MSP.member','Org2MSP.member')" --collections-config $CC_SRC_PATH/collectionsConfig.json
 
 CONTAINER_NAME="dev-peer0.org1.example.com-${CHAINCODE_NAME}"
 
@@ -49,11 +48,15 @@ CID=$(docker ps -q -f status=running -f name=^/${CONTAINER_NAME})
 while [ ! "${CID}" ]; do
     CID=$(docker ps -q -f status=running -f name=^/${CONTAINER_NAME})
     echo "$CONTAINER_NAME not found";
-    sleep 3;
+    sleep ${SLEEPTIME};
 done;
 
-sleep 3;
+sleep ${SLEEPTIME};
 
 docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp" cli peer chaincode invoke -o orderer.example.com:7050 -C mychannel -n "$CHAINCODE_NAME" -c '{"function":"initLedger","Args":[""]}'
+
+sleep ${SLEEPTIME};
+
+docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp" cli peer chaincode invoke -o orderer.example.com:7050 -C mychannel -n "$CHAINCODE_NAME" -c '{"function":"queryAllEntries","Args":[""]}'
 
 printf "\nTotal setup execution time : $(($(date +%s) - starttime)) secs ...\n\n\n"

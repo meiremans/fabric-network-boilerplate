@@ -1,4 +1,4 @@
-const config = require("../../chaincode/node/package")
+const config = require("../../chaincode/node/sampleContract/package")
 const version = config.version
 
 console.log(version)
