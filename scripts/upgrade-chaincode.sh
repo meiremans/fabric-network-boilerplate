@@ -8,17 +8,15 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 cd $DIR
 cd ../chaincode/node
-npm version minor
-yarn run clean
-yarn run build
+npm install
 
       if [ $? -eq 1 ]; then
         exit 1
     fi
 CHAINCODE_VERSION=$(node $DIR/include/getVersion.js)
 echo $CHAINCODE_VERSION
-CHAINCODE_NAME=fabcar
-CC_SRC_PATH=/opt/gopath/src/github.com/fabcar/node
+CHAINCODE_NAME=samplechaincode
+CC_SRC_PATH=opt/gopath/src/github.com/chaincode/node/sampleContract
 LANGUAGE=node
 
 docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp" cli peer chaincode install -n "$CHAINCODE_NAME" -v "$CHAINCODE_VERSION" -p "$CC_SRC_PATH" -l "$LANGUAGE"
